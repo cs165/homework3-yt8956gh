@@ -7,15 +7,38 @@
 // - Adding additional fields
 
 class MenuScreen {
-  constructor(containerElement) {
+  constructor(containerElement, NextStageClass) {
     this.containerElement = containerElement;
+    this.NextStageClass = NextStageClass;
+
+    this.hide = this.hide.bind(this);
+    this.show = this.show.bind(this);
+    //this.addItem = this.addItem.bind(this);
+
+    this.addItem();
   }
 
-  show() {
+
+  show(event) {
     this.containerElement.classList.remove('inactive');
   }
 
-  hide() {
+  hide(event) {
+    //console.log('HIDE');
+    //console.log("Chosen:"+event.target.innerText);
     this.containerElement.classList.add('inactive');
+    this.NextStageClass.show();
+  }
+
+  addItem(){
+    const choices = document.querySelector('#choices');
+
+    for(let desk of FLASHCARD_DECKS)
+    {
+      let divTmp=document.createElement('div');
+      divTmp.textContent=desk.title;
+      divTmp.addEventListener('click',this.hide);
+      choices.appendChild(divTmp);
+    }
   }
 }

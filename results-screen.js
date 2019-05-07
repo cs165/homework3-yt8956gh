@@ -7,8 +7,10 @@
 // - Adding additional fields
 
 class ResultsScreen {
-  constructor(containerElement) {
+  constructor(containerElement, NextStageClass) {
     this.containerElement = containerElement;
+    this.NextStageClass = NextStageClass;
+
   }
 
   show(numberCorrect, numberWrong) {
@@ -17,5 +19,6 @@ class ResultsScreen {
 
   hide() {
     this.containerElement.classList.add('inactive');
+    this.NextStageClass.show();
   }
 }

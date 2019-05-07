@@ -1,3 +1,20 @@
 /*
 TODO(you): Write any additional styles you need here.
 */
+
+.flashcard-box .word{
+    animation-name:  popUp;
+    animation-duration: 0.5s;
+    animation-timing-function: ease;
+    transform-origin: center 110%;
+}
+
+
+@keyframes popUp {
+    from{
+        transform: scaleY(0);
+    }
+    to{
+        transform: scaleY(1);
+    }
+}

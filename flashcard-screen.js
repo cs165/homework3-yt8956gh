@@ -8,8 +8,9 @@
 // - Adding additional fields
 
 class FlashcardScreen {
-  constructor(containerElement) {
+  constructor(containerElement, NextStageClass) {
     this.containerElement = containerElement;
+    this.NextStageClass = NextStageClass;
   }
 
   show() {
@@ -20,5 +21,6 @@ class FlashcardScreen {
 
   hide() {
     this.containerElement.classList.add('inactive');
+    this.NextStageClass.show();
   }
 }
