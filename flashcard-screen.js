@@ -8,19 +8,23 @@
 // - Adding additional fields
 
 class FlashcardScreen {
-  constructor(containerElement, NextStageClass) {
+  constructor(containerElement) {
     this.containerElement = containerElement;
-    this.NextStageClass = NextStageClass;
+    this.show = this.show.bind(this);
+    this.hide = this.hide.bind(this);
   }
 
-  show() {
+  show(detail) {
+    console.log(detail);
     this.containerElement.classList.remove('inactive');
     const flashcardContainer = document.querySelector('#flashcard-container');
-    const card = new Flashcard(flashcardContainer, 'word', 'definition');
+    const card = new Flashcard(flashcardContainer, detail);
+    flashcardContainer.addEventListener('end_The_Game', this.hide);
   }
 
-  hide() {
+  hide(event) {
     this.containerElement.classList.add('inactive');
-    this.NextStageClass.show();
+    this.containerElement.dispatchEvent(new CustomEvent('result_Stage'));
+
   }
 }

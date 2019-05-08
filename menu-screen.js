@@ -6,28 +6,29 @@
 // - Adding methods
 // - Adding additional fields
 
-class MenuScreen {
-  constructor(containerElement, NextStageClass) {
+class MenuScreen{
+  constructor(containerElement) {
     this.containerElement = containerElement;
-    this.NextStageClass = NextStageClass;
 
     this.hide = this.hide.bind(this);
     this.show = this.show.bind(this);
-    //this.addItem = this.addItem.bind(this);
 
     this.addItem();
   }
 
 
-  show(event) {
+  show() {
     this.containerElement.classList.remove('inactive');
   }
 
   hide(event) {
-    //console.log('HIDE');
-    //console.log("Chosen:"+event.target.innerText);
+
+    let words = FLASHCARD_DECKS.find(function(item, index, array){
+      return item.title===event.currentTarget.textContent;
+    });
+
     this.containerElement.classList.add('inactive');
-    this.NextStageClass.show();
+    this.containerElement.dispatchEvent(new CustomEvent('flashcard_Stage',{'detail':words}));
   }
 
   addItem(){

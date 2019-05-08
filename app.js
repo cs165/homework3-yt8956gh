@@ -10,25 +10,33 @@
 class App {
   constructor() {
 
+    const menuElement = document.querySelector('#menu');
+    this.menu = new MenuScreen(menuElement);
+
+    const mainElement = document.querySelector('#main');
+    this.flashcards = new FlashcardScreen(mainElement);
+
     const resultElement = document.querySelector('#results');
     this.results = new ResultsScreen(resultElement);
 
-    const mainElement = document.querySelector('#main');
-    this.flashcards = new FlashcardScreen(mainElement, this.results);
+    this.changeToFlashCard = this.changeToFlashCard.bind(this);
+    this.changeToResult = this.changeToResult.bind(this);
 
-    const menuElement = document.querySelector('#menu');
-    this.menu = new MenuScreen(menuElement, this.flashcards);
+    menuElement.addEventListener('flashcard_Stage', this.changeToFlashCard);
+    mainElement.addEventListener('result_Stage', this.changeToResult);
+    resultElement.addEventListener('menu_Stage',this.changeToMenu);
+  }
 
+  changeToFlashCard(event){
+    this.flashcards.show(event.detail);
+  }
 
+  changeToResult(){
+    console.log('End Game successfully');
+    this.results.show();
+  }
 
-
-
-    // Uncomment this pair of lines to see the "flashcard" screen:
-    //this.menu.hide();
-    //this.flashcards.show();
-
-    // Uncomment this pair of lines to see the "results" screen:
-     //this.menu.hide();
-     //this.results.show();
+  changeToMenu(){
+    this.menu.show();
   }
 }
