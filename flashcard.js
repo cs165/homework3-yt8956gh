@@ -34,11 +34,12 @@ class Flashcard {
     this._onDragMove = this._onDragMove.bind(this);
     this._onDragEnd = this._onDragEnd.bind(this);
     this.restart = this.restart.bind(this);
-    this.makeFirstCard =this.makeFirstCard.bind(this);
+    this.createNewFlashcard =this.createNewFlashcard.bind(this);
 
-    this.makeFirstCard();
+    this.createNewFlashcard();
   }
 
+  //接到resultScreen的事件後，重新開始遊戲。
   restart(){
 
     if(this.wrong===0) {//全對
@@ -61,7 +62,7 @@ class Flashcard {
     this.wrongFontwordSet=[];
     this.wrongBackwordSet=[];
 
-    this.makeFirstCard();
+    this.createNewFlashcard();
   }
 
   // Creates the DOM object representing a flashcard with the given
@@ -103,7 +104,8 @@ class Flashcard {
     this.flashcardElement.classList.toggle('show-word');
   }
 
-  makeFirstCard(){
+  //做出第一張Flashcard
+  createNewFlashcard(){
     this.flashcardElement = this._createFlashcardDOM(
         this.fontWord[this.wordCount], this.backWord[this.wordCount]);
 
@@ -120,6 +122,7 @@ class Flashcard {
 
   _onDragStart(event) {
 
+    //取得目前滑鼠點擊的位置
     this.originX = event.clientX;
     this.originY = event.clientY;
     this.dragStarted = true;
@@ -129,9 +132,9 @@ class Flashcard {
   }
 
   _onDragMove(event) {
-    if (!this.dragStarted) {
-      return;
-    }
+
+    if (!this.dragStarted) return;
+
     event.preventDefault();
     this.deltaX = event.clientX - this.originX;
     this.deltaY = event.clientY - this.originY;
@@ -160,7 +163,8 @@ class Flashcard {
     this.originY = null;
 
     if(!this.haveAnswer)
-    { //還沒有答案
+    {
+      //還沒有答案
       event.currentTarget.style.transform = 'translate(0px, 0px)';
       event.currentTarget.style.transitionDuration="0.6s";
     }
@@ -168,27 +172,24 @@ class Flashcard {
     {
       //移除舊的flashcard
       this.containerElement.removeChild(this.flashcardElement);
-      console.log('remove flashcardElement');
-
-
 
       let correctSpan = document.querySelector('.correct');
       let wrongSpan = document.querySelector('.incorrect');
 
-      if(this.deltaX>0){
-        //正確
+      if(this.deltaX>0){//正確
+
         this.correct++;
         if(this.restartWithWrong) this.wrong--;//重新開始後，如果有答對，之前答錯的題數要去除掉
       }
-      else{
-        //錯誤
-        if(!this.restartWithWrong) this.wrong++;//重新開始後，如果有答錯，答錯的題數不變
+      else{//錯誤
+
+        if(!this.restartWithWrong) this.wrong++;//重新開始後，如果又答錯，答錯的題數不變
         this.wrongFontwordSet.push(this.fontWord[this.wordCount]);
         this.wrongBackwordSet.push(this.backWord[this.wordCount]);
       }
 
-      correctSpan.textContent=this.correct.toString();
-      wrongSpan.textContent=this.wrong.toString();
+      correctSpan.textContent=this.correct;
+      wrongSpan.textContent=this.wrong;
 
       this.wordCount++;
 
@@ -197,19 +198,15 @@ class Flashcard {
         this.wordCount=0;
         correctSpan.textContent='';
         wrongSpan.textContent='';
-        console.log('Correct:'+this.correct+'Wrong'+this.wrong);
+
+        //封裝對錯的題數，在用CustomEvent把參數傳出去
         const score={'correct':this.correct,'incorrect':this.wrong};
         this.containerElement.dispatchEvent(new CustomEvent('end_The_Game',{detail:score}));
       }
       else
       {
         //增加新的flashcard
-        this.flashcardElement = this._createFlashcardDOM(
-            this.fontWord[this.wordCount], this.backWord[this.wordCount]);
-
-        console.log(this.wordCount);
-        this.containerElement.append(this.flashcardElement);
-        this.makeCardMove(this.flashcardElement);
+        this.createNewFlashcard();
         this.haveAnswer = false;
         this.dragStarted = false;
       }

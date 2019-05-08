@@ -28,7 +28,6 @@ class App {
     mainElement.addEventListener('result_Stage', this.changeToResult);
     resultElement.addEventListener('menu_Stage',this.changeToMenu);
     resultElement.addEventListener('restart_flashcard_Stage',this.restartFlashcard);
-    this.menu.show();
   }
 
   changeToFlashCard(event){
