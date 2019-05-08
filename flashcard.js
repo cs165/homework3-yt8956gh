@@ -44,6 +44,7 @@ class Flashcard {
     if(this.wrong===0) {//全對
       this.fontWord = Object.keys(this.detail.words);
       this.backWord = Object.values(this.detail.words);
+      this.wordLength = this.backWord.length;
       this.wordCount=0;
       this.correct=0;
       this.wrong=0;
