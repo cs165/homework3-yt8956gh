@@ -2,27 +2,65 @@
 class Flashcard {
   constructor(containerElement, detail) {
     this.containerElement = containerElement;
-    this.haveAnswer=false;
+    this.detail = detail;
+
+    //for drag
     this.originX = null;
     this.originY = null;
     this.dragStarted = false;
+    this.deltaX = null;
+    this.deltaY = null;
+
+    //for iterate word in desk
     this.wordCount=0;
-    this.fontWord = Object.keys(detail.words);
-    this.backWord = Object.values(detail.words);
+    this.fontWord = Object.keys(this.detail.words);
+    this.backWord = Object.values(this.detail.words);
     this.wordLength = this.backWord.length;
     console.log(this.wordLength);
+
+    //for leaving the game
+    this.haveAnswer=false;
+
+    //for recording score
+    this.correct=0;
+    this.wrong=0;
+    this.wrongFontwordSet = [];
+    this.wrongBackwordSet = [];
+    this.restartWithWrong=false;
+
 
     this._flipCard = this._flipCard.bind(this);
     this._onDragStart = this._onDragStart.bind(this);
     this._onDragMove = this._onDragMove.bind(this);
     this._onDragEnd = this._onDragEnd.bind(this);
+    this.restart = this.restart.bind(this);
+    this.makeFirstCard =this.makeFirstCard.bind(this);
 
-    this.flashcardElement = this._createFlashcardDOM(
-        this.fontWord[this.wordCount], this.backWord[this.wordCount]);
+    this.makeFirstCard();
+  }
 
-    this.containerElement.append(this.flashcardElement);
+  restart(){
 
-    this.makeCardMove(this.flashcardElement);
+    if(this.wrong===0) {//全對
+      this.fontWord = Object.keys(this.detail.words);
+      this.backWord = Object.values(this.detail.words);
+      this.wordCount=0;
+      this.correct=0;
+      this.wrong=0;
+      this.restartWithWrong=false;
+    }
+    else {
+      this.fontWord = this.wrongFontwordSet;
+      this.backWord = this.wrongBackwordSet;
+      this.wordLength = this.backWord.length;
+      this.wordCount=0;
+      this.restartWithWrong=true;
+    }
+
+    this.wrongFontwordSet=[];
+    this.wrongBackwordSet=[];
+
+    this.makeFirstCard();
   }
 
   // Creates the DOM object representing a flashcard with the given
@@ -60,8 +98,17 @@ class Flashcard {
     return cardContainer;
   }
 
-  _flipCard(event) {
+  _flipCard() {
     this.flashcardElement.classList.toggle('show-word');
+  }
+
+  makeFirstCard(){
+    this.flashcardElement = this._createFlashcardDOM(
+        this.fontWord[this.wordCount], this.backWord[this.wordCount]);
+
+    this.makeCardMove(this.flashcardElement);
+
+    this.containerElement.append(this.flashcardElement);
   }
 
   makeCardMove(element){
@@ -85,22 +132,21 @@ class Flashcard {
       return;
     }
     event.preventDefault();
-    const deltaX = event.clientX - this.originX;
-    const deltaY = event.clientY - this.originY;
+    this.deltaX = event.clientX - this.originX;
+    this.deltaY = event.clientY - this.originY;
 
-    event.currentTarget.style.transform = 'translate(' + deltaX + 'px, ' + deltaY + 'px) ';
-    event.currentTarget.style.transform += 'rotate('+deltaX*0.2 +'deg)';
+    event.currentTarget.style.transform = 'translate(' + this.deltaX + 'px, ' + this.deltaY + 'px) ';
+    event.currentTarget.style.transform += 'rotate('+this.deltaX*0.2 +'deg)';
 
     let body = document.querySelector('body');
 
-    if(deltaX > 120 || deltaX < -120)
+    if(this.deltaX > 120 || this.deltaX < -120)
     {
       body.style.backgroundColor='#97b7b7';
       this.haveAnswer=true;
     }
     else
     {
-
       body.style.backgroundColor='#d0e6df';
       this.haveAnswer=false;
     }
@@ -117,28 +163,56 @@ class Flashcard {
       event.currentTarget.style.transform = 'translate(0px, 0px)';
       event.currentTarget.style.transitionDuration="0.6s";
     }
-    else if(this.wordLength<=(this.wordCount+1))//遊戲結束
-    {
-      console.log('Game_end');
-      this.containerElement.dispatchEvent(new CustomEvent('end_The_Game'));
-    }
     else
     {
       //移除舊的flashcard
       this.containerElement.removeChild(this.flashcardElement);
       console.log('remove flashcardElement');
 
+
+
+      let correctSpan = document.querySelector('.correct');
+      let wrongSpan = document.querySelector('.incorrect');
+
+      if(this.deltaX>0){
+        //正確
+        this.correct++;
+        if(this.restartWithWrong) this.wrong--;//重新開始後，如果有答對，之前答錯的題數要去除掉
+      }
+      else{
+        //錯誤
+        if(!this.restartWithWrong) this.wrong++;//重新開始後，如果有答錯，答錯的題數不變
+        this.wrongFontwordSet.push(this.fontWord[this.wordCount]);
+        this.wrongBackwordSet.push(this.backWord[this.wordCount]);
+      }
+
+      correctSpan.textContent=this.correct.toString();
+      wrongSpan.textContent=this.wrong.toString();
+
       this.wordCount++;
 
-      //增加新的flashcard
-      this.flashcardElement = this._createFlashcardDOM(
-          this.fontWord[this.wordCount], this.backWord[this.wordCount]);
+      if(this.wordLength<=(this.wordCount))//遊戲結束
+      {
+        this.wordCount=0;
+        correctSpan.textContent='';
+        wrongSpan.textContent='';
+        console.log('Correct:'+this.correct+'Wrong'+this.wrong);
+        const score={'correct':this.correct,'incorrect':this.wrong};
+        this.containerElement.dispatchEvent(new CustomEvent('end_The_Game',{detail:score}));
+      }
+      else
+      {
+        //增加新的flashcard
+        this.flashcardElement = this._createFlashcardDOM(
+            this.fontWord[this.wordCount], this.backWord[this.wordCount]);
 
-      console.log(this.wordCount);
-      this.containerElement.append(this.flashcardElement);
-      this.makeCardMove(this.flashcardElement);
-      this.haveAnswer = false;
-      this.dragStarted = false;
+        console.log(this.wordCount);
+        this.containerElement.append(this.flashcardElement);
+        this.makeCardMove(this.flashcardElement);
+        this.haveAnswer = false;
+        this.dragStarted = false;
+      }
+
       let body = document.querySelector('body');
       body.style.backgroundColor='#d0e6df';
     }
